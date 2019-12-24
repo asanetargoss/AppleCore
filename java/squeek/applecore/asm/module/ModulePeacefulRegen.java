@@ -5,11 +5,14 @@ import squeek.applecore.asm.ASMConstants;
 import squeek.applecore.asm.IClassTransformerModule;
 import squeek.asmhelper.applecore.ASMHelper;
 import squeek.asmhelper.applecore.ObfHelper;
+import squeek.asmhelper.applecore.ObfuscatedName;
 
 import static org.objectweb.asm.Opcodes.*;
 
 public class ModulePeacefulRegen implements IClassTransformerModule
 {
+	private static final ObfuscatedName ON_LIVING_UPDATE = new ObfuscatedName("func_70636_d" /*onLivingUpdate*/);
+	
 	@Override
 	public String[] getClassesToTransform()
 	{
@@ -23,7 +26,7 @@ public class ModulePeacefulRegen implements IClassTransformerModule
 		{
 			ClassNode classNode = ASMHelper.readClassFromBytes(basicClass);
 
-			MethodNode methodNode = ASMHelper.findMethodNodeOfClass(classNode, "func_70636_d", "onLivingUpdate", ASMHelper.toMethodDescriptor("V"));
+			MethodNode methodNode = ASMHelper.findMethodNodeOfClass(classNode, ON_LIVING_UPDATE.get(), ASMHelper.toMethodDescriptor("V"));
 			if (methodNode != null)
 			{
 				addPeacefulRegenHook(classNode, methodNode);

@@ -8,12 +8,15 @@ import squeek.applecore.asm.IClassTransformerModule;
 import squeek.asmhelper.applecore.ASMHelper;
 import squeek.asmhelper.applecore.InsnComparator;
 import squeek.asmhelper.applecore.ObfHelper;
+import squeek.asmhelper.applecore.ObfuscatedName;
 
 import static org.objectweb.asm.Opcodes.*;
 
 public class ModuleBlockFood implements IClassTransformerModule
 {
 	private static String isEdibleAtMaxHungerField = "AppleCore_isEdibleAtMaxHunger";
+	
+	private static ObfuscatedName EAT_CAKE = new ObfuscatedName("func_180682_b" /*eatCake*/);
 
 	@Override
 	public String[] getClassesToTransform()
@@ -28,7 +31,7 @@ public class ModuleBlockFood implements IClassTransformerModule
 
 		implementIEdibleBlock(classNode);
 
-		MethodNode methodNode = ASMHelper.findMethodNodeOfClass(classNode, "func_180682_b", "eatCake", ASMHelper.toMethodDescriptor("V", ASMConstants.WORLD, ASMConstants.BLOCK_POS, ASMConstants.IBLOCKSTATE, ASMConstants.PLAYER));
+		MethodNode methodNode = ASMHelper.findMethodNodeOfClass(classNode, EAT_CAKE.get(), ASMHelper.toMethodDescriptor("V", ASMConstants.WORLD, ASMConstants.BLOCK_POS, ASMConstants.IBLOCKSTATE, ASMConstants.PLAYER));
 		if (methodNode != null)
 		{
 			addOnBlockFoodEatenHook(classNode, methodNode);

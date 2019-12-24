@@ -7,6 +7,7 @@ import squeek.applecore.asm.ASMConstants;
 import squeek.applecore.asm.IClassTransformerModule;
 import squeek.asmhelper.applecore.ASMHelper;
 import squeek.asmhelper.applecore.ObfHelper;
+import squeek.asmhelper.applecore.ObfuscatedName;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -14,6 +15,20 @@ public class ModuleFoodStats implements IClassTransformerModule
 {
 	public static String foodStatsPlayerField = "entityplayer";
 	public static String foodStatsStarveTimerField = "starveTimer";
+	
+	private static final ObfuscatedName ADD_STATS = new ObfuscatedName("func_75122_a" /*addStats*/);
+	private static final ObfuscatedName ADD_STATS_USING_STACK = new ObfuscatedName("func_151686_a" /*addStats*/);
+	private static final ObfuscatedName ON_UPDATE = new ObfuscatedName("func_75118_a" /*onUpdate*/);
+	private static final ObfuscatedName NEED_FOOD = new ObfuscatedName("func_75121_c" /*needFood*/);
+	private static final ObfuscatedName ADD_EXHAUSTION = new ObfuscatedName("func_75113_a" /*addExhaustion*/);
+	private static ObfuscatedName GET_HEAL_AMOUNT = new ObfuscatedName("func_150905_g" /*getHealAmount*/);
+
+	private static ObfuscatedName FOOD_TIMER = new ObfuscatedName("field_75123_d" /*foodTimer*/);
+	private static ObfuscatedName FOOD_LEVEL = new ObfuscatedName("field_75127_a" /*foodLevel*/);
+	private static ObfuscatedName PREV_FOOD_LEVEL = new ObfuscatedName("field_75124_e" /*prevFoodLevel*/);
+	private static ObfuscatedName FOOD_EXHAUSTION_LEVEL = new ObfuscatedName("field_75126_c" /*foodExhaustionLevel*/);
+	private static ObfuscatedName FOOD_SATURATION_LEVEL = new ObfuscatedName("field_75125_b" /*foodSaturationLevel*/);
+	private static ObfuscatedName GET_SATURATION_MODIFIER = new ObfuscatedName("func_150906_h" /*getSaturationModifier*/);
 
 	@Override
 	public String[] getClassesToTransform()
@@ -49,18 +64,18 @@ public class ModuleFoodStats implements IClassTransformerModule
 
 			// IAppleCoreFoodStats implementation
 			classNode.interfaces.add(ASMHelper.toInternalClassName(ASMConstants.IAPPLECOREFOODSTATS));
-			tryAddFieldGetter(classNode, "getFoodTimer", ObfHelper.isObfuscated() ? "field_75123_d" : "foodTimer", "I");
-			tryAddFieldSetter(classNode, "setFoodTimer", ObfHelper.isObfuscated() ? "field_75123_d" : "foodTimer", "I");
+			tryAddFieldGetter(classNode, "getFoodTimer", FOOD_TIMER.get(), "I");
+			tryAddFieldSetter(classNode, "setFoodTimer", FOOD_TIMER.get(), "I");
 			tryAddFieldGetter(classNode, "getStarveTimer", foodStatsStarveTimerField, "I");
 			tryAddFieldSetter(classNode, "setStarveTimer", foodStatsStarveTimerField, "I");
 			tryAddFieldGetter(classNode, "getPlayer", foodStatsPlayerField, ASMHelper.toDescriptor(ASMConstants.PLAYER));
 			tryAddFieldSetter(classNode, "setPlayer", foodStatsPlayerField, ASMHelper.toDescriptor(ASMConstants.PLAYER));
-			tryAddFieldSetter(classNode, "setPrevFoodLevel", ObfHelper.isObfuscated() ? "field_75124_e" : "prevFoodLevel", "I");
-			tryAddFieldGetter(classNode, "getExhaustion", ObfHelper.isObfuscated() ? "field_75126_c" : "foodExhaustionLevel", "F");
-			tryAddFieldSetter(classNode, "setExhaustion", ObfHelper.isObfuscated() ? "field_75126_c" : "foodExhaustionLevel", "F");
-			tryAddFieldSetter(classNode, "setSaturation", ObfHelper.isObfuscated() ? "field_75125_b" : "foodSaturationLevel", "F");
+			tryAddFieldSetter(classNode, "setPrevFoodLevel", PREV_FOOD_LEVEL.get(), "I");
+			tryAddFieldGetter(classNode, "getExhaustion", FOOD_EXHAUSTION_LEVEL.get(), "F");
+			tryAddFieldSetter(classNode, "setExhaustion", FOOD_EXHAUSTION_LEVEL.get(), "F");
+			tryAddFieldSetter(classNode, "setSaturation", FOOD_SATURATION_LEVEL.get(), "F");
 
-			MethodNode addStatsMethodNode = ASMHelper.findMethodNodeOfClass(classNode, "func_75122_a", "addStats", ASMHelper.toMethodDescriptor("V", "I", "F"));
+			MethodNode addStatsMethodNode = ASMHelper.findMethodNodeOfClass(classNode, ADD_STATS.get(), ASMHelper.toMethodDescriptor("V", "I", "F"));
 			if (addStatsMethodNode != null)
 			{
 				hookFoodStatsAddition(classNode, addStatsMethodNode);
@@ -68,15 +83,15 @@ public class ModuleFoodStats implements IClassTransformerModule
 			else
 				throw new RuntimeException("FoodStats: addStats(IF)V method not found");
 
-			MethodNode methodNode = ASMHelper.findMethodNodeOfClass(classNode, "func_151686_a", "addStats", ASMHelper.toMethodDescriptor("V", ASMConstants.ITEM_FOOD, ASMConstants.STACK));
+			MethodNode methodNode = ASMHelper.findMethodNodeOfClass(classNode, ADD_STATS_USING_STACK.get(), ASMHelper.toMethodDescriptor("V", ASMConstants.ITEM_FOOD, ASMConstants.STACK));
 			if (methodNode != null)
 			{
-				addItemStackAwareFoodStatsHook(classNode, methodNode, ObfHelper.isObfuscated());
+				addItemStackAwareFoodStatsHook(classNode, methodNode);
 			}
 			else
 				throw new RuntimeException("FoodStats: ItemStack-aware addStats method not found");
 
-			MethodNode updateMethodNode = ASMHelper.findMethodNodeOfClass(classNode, "func_75118_a", "onUpdate", ASMHelper.toMethodDescriptor("V", ASMConstants.PLAYER));
+			MethodNode updateMethodNode = ASMHelper.findMethodNodeOfClass(classNode, ON_UPDATE.get(), ASMHelper.toMethodDescriptor("V", ASMConstants.PLAYER));
 			if (updateMethodNode != null)
 			{
 				hookUpdate(classNode, updateMethodNode);
@@ -84,7 +99,7 @@ public class ModuleFoodStats implements IClassTransformerModule
 			else
 				throw new RuntimeException("FoodStats: onUpdate method not found");
 
-			MethodNode needFoodMethodNode = ASMHelper.findMethodNodeOfClass(classNode, "func_75121_c", "needFood", ASMHelper.toMethodDescriptor("Z"));
+			MethodNode needFoodMethodNode = ASMHelper.findMethodNodeOfClass(classNode, NEED_FOOD.get(), ASMHelper.toMethodDescriptor("Z"));
 			if (needFoodMethodNode != null)
 			{
 				hookNeedFood(classNode, needFoodMethodNode);
@@ -92,7 +107,7 @@ public class ModuleFoodStats implements IClassTransformerModule
 			else
 				throw new RuntimeException("FoodStats: needFood method not found");
 
-			MethodNode addExhaustionMethod = ASMHelper.findMethodNodeOfClass(classNode, "func_75113_a", "addExhaustion", ASMHelper.toMethodDescriptor("V", "F"));
+			MethodNode addExhaustionMethod = ASMHelper.findMethodNodeOfClass(classNode, ADD_EXHAUSTION.get(), ASMHelper.toMethodDescriptor("V", "F"));
 			if (addExhaustionMethod != null)
 			{
 				hookAddExhaustion(classNode, addExhaustionMethod);
@@ -170,7 +185,7 @@ public class ModuleFoodStats implements IClassTransformerModule
 		classNode.methods.add(constructor);
 	}
 
-	public void addItemStackAwareFoodStatsHook(ClassNode classNode, MethodNode method, boolean isObfuscated)
+	public void addItemStackAwareFoodStatsHook(ClassNode classNode, MethodNode method)
 	{
 		String internalFoodStatsName = ASMHelper.toInternalClassName(classNode.name);
 
@@ -211,11 +226,11 @@ public class ModuleFoodStats implements IClassTransformerModule
 
 		// save current hunger/saturation levels
 		toInject.add(new VarInsnNode(ALOAD, 0));
-		toInject.add(new FieldInsnNode(GETFIELD, internalFoodStatsName, ObfHelper.isObfuscated() ? "field_75127_a" : "foodLevel", "I"));
+		toInject.add(new FieldInsnNode(GETFIELD, internalFoodStatsName, FOOD_LEVEL.get(), "I"));
 		toInject.add(new VarInsnNode(ISTORE, prevFoodLevel.index));
 		toInject.add(prevFoodLevelStart);
 		toInject.add(new VarInsnNode(ALOAD, 0));
-		toInject.add(new FieldInsnNode(GETFIELD, internalFoodStatsName, ObfHelper.isObfuscated() ? "field_75125_b" : "foodSaturationLevel", "F"));
+		toInject.add(new FieldInsnNode(GETFIELD, internalFoodStatsName, FOOD_SATURATION_LEVEL.get(), "F"));
 		toInject.add(new VarInsnNode(FSTORE, prevSaturationLevel.index));
 		toInject.add(prevSaturationLevelStart);
 
@@ -227,7 +242,7 @@ public class ModuleFoodStats implements IClassTransformerModule
 		InsnList hungerNeedle = new InsnList();
 		hungerNeedle.add(new VarInsnNode(ALOAD, 1));
 		hungerNeedle.add(new VarInsnNode(ALOAD, 2));
-		hungerNeedle.add(new MethodInsnNode(INVOKEVIRTUAL, ObfHelper.getInternalClassName(ASMConstants.ITEM_FOOD), ObfHelper.isObfuscated() ? "func_150905_g" : "getHealAmount" , ASMHelper.toMethodDescriptor("I", ASMHelper.toDescriptor(ASMConstants.STACK)), false));
+		hungerNeedle.add(new MethodInsnNode(INVOKEVIRTUAL, ObfHelper.getInternalClassName(ASMConstants.ITEM_FOOD), GET_HEAL_AMOUNT.get(), ASMHelper.toMethodDescriptor("I", ASMHelper.toDescriptor(ASMConstants.STACK)), false));
 
 		InsnList hungerReplacement = new InsnList();
 		hungerReplacement.add(new VarInsnNode(ALOAD, modifiedFoodValues.index));
@@ -236,7 +251,7 @@ public class ModuleFoodStats implements IClassTransformerModule
 		InsnList saturationNeedle = new InsnList();
 		saturationNeedle.add(new VarInsnNode(ALOAD, 1));
 		saturationNeedle.add(new VarInsnNode(ALOAD, 2));
-		saturationNeedle.add(new MethodInsnNode(INVOKEVIRTUAL, ObfHelper.getInternalClassName("net.minecraft.item.ItemFood"), ObfHelper.isObfuscated() ? "func_150906_h" : "getSaturationModifier", ASMHelper.toMethodDescriptor("F", ASMHelper.toDescriptor(ASMConstants.STACK)), false));
+		saturationNeedle.add(new MethodInsnNode(INVOKEVIRTUAL, ObfHelper.getInternalClassName("net.minecraft.item.ItemFood"), GET_SATURATION_MODIFIER.get(), ASMHelper.toMethodDescriptor("F", ASMHelper.toDescriptor(ASMConstants.STACK)), false));
 
 		InsnList saturationReplacement = new InsnList();
 		saturationReplacement.add(new VarInsnNode(ALOAD, modifiedFoodValues.index));
@@ -265,13 +280,13 @@ public class ModuleFoodStats implements IClassTransformerModule
 
 		// prevFoodLevel - this.foodLevel
 		toInject.add(new VarInsnNode(ALOAD, 0));
-		toInject.add(new FieldInsnNode(GETFIELD, internalFoodStatsName, ObfHelper.isObfuscated() ? "field_75127_a" : "foodLevel", "I"));
+		toInject.add(new FieldInsnNode(GETFIELD, internalFoodStatsName, FOOD_LEVEL.get(), "I"));
 		toInject.add(new VarInsnNode(ILOAD, prevFoodLevel.index));
 		toInject.add(new InsnNode(ISUB));
 
 		// prevSaturationLevel - this.foodSaturationLevel
 		toInject.add(new VarInsnNode(ALOAD, 0));
-		toInject.add(new FieldInsnNode(GETFIELD, internalFoodStatsName, ObfHelper.isObfuscated() ? "field_75125_b" : "foodSaturationLevel", "F"));
+		toInject.add(new FieldInsnNode(GETFIELD, internalFoodStatsName, FOOD_SATURATION_LEVEL.get(), "F"));
 		toInject.add(new VarInsnNode(FLOAD, prevSaturationLevel.index));
 		toInject.add(new InsnNode(FSUB));
 

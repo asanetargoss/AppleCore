@@ -75,7 +75,7 @@ public class Hooks
 			}
 		}
 
-		boolean hasNaturalRegen = player.worldObj.getGameRules().getBoolean("naturalRegeneration");
+		boolean hasNaturalRegen = player.world.getGameRules().getBoolean("naturalRegeneration");
 
 		Result allowSaturatedRegenResult = Hooks.fireAllowSaturatedRegenEvent(player);
 		boolean shouldDoSaturatedRegen = allowSaturatedRegenResult == Result.ALLOW || (allowSaturatedRegenResult == Result.DEFAULT && hasNaturalRegen && foodStats.getSaturationLevel() > 0.0F && player.shouldHeal() && foodStats.getFoodLevel() >= 20);
@@ -310,7 +310,7 @@ public class Hooks
 			return 0;
 
 		// floor here so that full hunger is only drawn when its actually maxed
-		int scaledHunger = MathHelper.floor_float(realHunger * scale);
+		int scaledHunger = MathHelper.floor(realHunger * scale);
 
 		// hunger is always some non-zero value here, so return at least one
 		// to make sure we don't draw 0 hunger when we're not actually

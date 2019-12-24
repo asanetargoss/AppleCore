@@ -5,11 +5,22 @@ import squeek.applecore.asm.ASMConstants;
 import squeek.applecore.asm.IClassTransformerModule;
 import squeek.asmhelper.applecore.ASMHelper;
 import squeek.asmhelper.applecore.ObfHelper;
+import squeek.asmhelper.applecore.ObfuscatedName;
 
 import static org.objectweb.asm.Opcodes.*;
 
 public class ModuleFoodEatingSpeed implements IClassTransformerModule
 {
+	private static final ObfuscatedName SET_ACTIVE_HAND = new ObfuscatedName("func_184598_c" /*setActiveHand*/);
+	private static final ObfuscatedName GET_ITEM_IN_USE_MAX_COUNT = new ObfuscatedName("func_184612_cw" /*getItemInUseMaxCount*/);
+	private static final ObfuscatedName TRANSFORM_EAT_FIRST_PERSON = new ObfuscatedName("func_187454_a" /*transformEatFirstPerson*/);
+	private static final ObfuscatedName GET_MAX_ITEM_USE_DURATION = new ObfuscatedName("func_77988_m" /*getMaxItemUseDuration*/);
+	
+	private static final ObfuscatedName MC = new ObfuscatedName("field_78455_a" /*mc*/);
+	private static final ObfuscatedName THE_PLAYER = new ObfuscatedName("field_71439_g" /*thePlayer*/);
+	private static final ObfuscatedName ACTIVE_ITEM_STACK = new ObfuscatedName("field_184627_bm" /*activeItemStack*/);
+	private static final ObfuscatedName ACTIVE_ITEM_STACK_USE_COUNT = new ObfuscatedName("field_184628_bn" /*activeItemStackUseCount*/);
+	
 	@Override
 	public String[] getClassesToTransform()
 	{
@@ -28,7 +39,7 @@ public class ModuleFoodEatingSpeed implements IClassTransformerModule
 		{
 			addItemInUseMaxDurationField(classNode);
 
-			MethodNode methodNode = ASMHelper.findMethodNodeOfClass(classNode, "func_184598_c", "setActiveHand", ASMHelper.toMethodDescriptor("V", ASMConstants.HAND));
+			MethodNode methodNode = ASMHelper.findMethodNodeOfClass(classNode, SET_ACTIVE_HAND.get(), ASMHelper.toMethodDescriptor("V", ASMConstants.HAND));
 			if (methodNode != null)
 			{
 				patchSetActiveHand(classNode, methodNode);
@@ -36,7 +47,7 @@ public class ModuleFoodEatingSpeed implements IClassTransformerModule
 			else
 				throw new RuntimeException(classNode.name + ": setActiveHand method not found");
 
-			methodNode = ASMHelper.findMethodNodeOfClass(classNode, "func_184612_cw", "getItemInUseMaxCount", ASMHelper.toMethodDescriptor("I"));
+			methodNode = ASMHelper.findMethodNodeOfClass(classNode, GET_ITEM_IN_USE_MAX_COUNT.get(), ASMHelper.toMethodDescriptor("I"));
 			if (methodNode != null)
 			{
 				patchGetItemInUseMaxCount(classNode, methodNode);
@@ -46,7 +57,7 @@ public class ModuleFoodEatingSpeed implements IClassTransformerModule
 		}
 		else if (transformedName.equals(ASMConstants.ITEM_RENDERER))
 		{
-			MethodNode methodNode = ASMHelper.findMethodNodeOfClass(classNode, "func_187454_a", "transformEatFirstPerson", ASMHelper.toMethodDescriptor("V", "F", ASMConstants.HAND_SIDE, ASMConstants.STACK));
+			MethodNode methodNode = ASMHelper.findMethodNodeOfClass(classNode, TRANSFORM_EAT_FIRST_PERSON.get(), ASMHelper.toMethodDescriptor("V", "F", ASMConstants.HAND_SIDE, ASMConstants.STACK));
 			if (methodNode != null)
 			{
 				patchRenderItemInFirstPerson(methodNode);
@@ -62,12 +73,12 @@ public class ModuleFoodEatingSpeed implements IClassTransformerModule
 	{
 		InsnList needle = new InsnList();
 		needle.add(new VarInsnNode(ALOAD, 3));
-		needle.add(new MethodInsnNode(INVOKEVIRTUAL, ASMHelper.toInternalClassName(ASMConstants.STACK), ObfHelper.isObfuscated() ? "func_77988_m" : "getMaxItemUseDuration", ASMHelper.toMethodDescriptor("I"), false));
+		needle.add(new MethodInsnNode(INVOKEVIRTUAL, ASMHelper.toInternalClassName(ASMConstants.STACK), GET_MAX_ITEM_USE_DURATION.get(), ASMHelper.toMethodDescriptor("I"), false));
 
 		InsnList replacement = new InsnList();
 		replacement.add(new VarInsnNode(ALOAD, 0));
-		replacement.add(new FieldInsnNode(GETFIELD, ObfHelper.getInternalClassName(ASMConstants.ITEM_RENDERER), ObfHelper.isObfuscated() ? "field_78455_a" : "mc", ASMHelper.toDescriptor(ASMConstants.MINECRAFT)));
-		replacement.add(new FieldInsnNode(GETFIELD, ObfHelper.getInternalClassName(ASMConstants.MINECRAFT), ObfHelper.isObfuscated() ? "field_71439_g" : "thePlayer", ASMHelper.toDescriptor(ASMConstants.PLAYER_SP)));
+		replacement.add(new FieldInsnNode(GETFIELD, ObfHelper.getInternalClassName(ASMConstants.ITEM_RENDERER), MC.get(), ASMHelper.toDescriptor(ASMConstants.MINECRAFT)));
+		replacement.add(new FieldInsnNode(GETFIELD, ObfHelper.getInternalClassName(ASMConstants.MINECRAFT), THE_PLAYER.get(), ASMHelper.toDescriptor(ASMConstants.PLAYER_SP)));
 		replacement.add(new FieldInsnNode(GETFIELD, ObfHelper.getInternalClassName(ASMConstants.PLAYER), "itemInUseMaxDuration", "I"));
 
 		boolean replaced = ASMHelper.findAndReplace(method.instructions, needle, replacement) != null;
@@ -79,8 +90,8 @@ public class ModuleFoodEatingSpeed implements IClassTransformerModule
 	{
 		InsnList needle = new InsnList();
 		needle.add(new VarInsnNode(ALOAD, 0));
-		needle.add(new FieldInsnNode(GETFIELD, ObfHelper.getInternalClassName(ASMConstants.ENTITY_LIVING), ObfHelper.isObfuscated() ? "field_184627_bm" : "activeItemStack", ASMHelper.toDescriptor(ASMConstants.STACK)));
-		needle.add(new MethodInsnNode(INVOKEVIRTUAL, ObfHelper.getInternalClassName(ASMConstants.STACK), ObfHelper.isObfuscated() ? "func_77988_m" : "getMaxItemUseDuration", ASMHelper.toMethodDescriptor("I"), false));
+		needle.add(new FieldInsnNode(GETFIELD, ObfHelper.getInternalClassName(ASMConstants.ENTITY_LIVING), ACTIVE_ITEM_STACK.get(), ASMHelper.toDescriptor(ASMConstants.STACK)));
+		needle.add(new MethodInsnNode(INVOKEVIRTUAL, ObfHelper.getInternalClassName(ASMConstants.STACK), GET_MAX_ITEM_USE_DURATION.get(), ASMHelper.toMethodDescriptor("I"), false));
 
 		InsnList replacement = new InsnList();
 		replacement.add(new VarInsnNode(ALOAD, 0));
@@ -96,7 +107,7 @@ public class ModuleFoodEatingSpeed implements IClassTransformerModule
 	private void patchSetActiveHand(ClassNode classNode, MethodNode method)
 	{
 		AbstractInsnNode targetNode = ASMHelper.findFirstInstructionWithOpcode(method, PUTFIELD);
-		while (targetNode != null && !((FieldInsnNode) targetNode).name.equals(ObfHelper.isObfuscated() ? "field_184628_bn" : "activeItemStackUseCount"))
+		while (targetNode != null && !((FieldInsnNode) targetNode).name.equals(ACTIVE_ITEM_STACK_USE_COUNT.get()))
 		{
 			targetNode = ASMHelper.findNextInstructionWithOpcode(targetNode, PUTFIELD);
 		}

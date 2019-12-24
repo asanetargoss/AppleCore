@@ -9,6 +9,7 @@ import squeek.applecore.asm.ASMConstants;
 import squeek.applecore.asm.IClassTransformerModule;
 import squeek.asmhelper.applecore.ASMHelper;
 import squeek.asmhelper.applecore.ObfHelper;
+import squeek.asmhelper.applecore.ObfuscatedName;
 
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
@@ -18,6 +19,8 @@ import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
  */
 public class ModuleHungerHUD implements IClassTransformerModule
 {
+	private static final ObfuscatedName GET_FOOD_LEVEL = new ObfuscatedName("func_75116_a" /*getFoodLevel*/);
+	
 	@Override
 	public String[] getClassesToTransform()
 	{
@@ -33,7 +36,7 @@ public class ModuleHungerHUD implements IClassTransformerModule
 		if (methodNode != null)
 		{
 			InsnList needle = new InsnList();
-			needle.add(new MethodInsnNode(INVOKEVIRTUAL, ObfHelper.getInternalClassName(ASMConstants.FOOD_STATS), ObfHelper.isObfuscated() ? "func_75116_a" : "getFoodLevel", ASMHelper.toMethodDescriptor("I"), false));
+			needle.add(new MethodInsnNode(INVOKEVIRTUAL, ObfHelper.getInternalClassName(ASMConstants.FOOD_STATS), GET_FOOD_LEVEL.get(), ASMHelper.toMethodDescriptor("I"), false));
 
 			InsnList replace = new InsnList();
 			replace.add(new MethodInsnNode(INVOKESTATIC, ASMConstants.HOOKS_INTERNAL_CLASS, "getHungerForDisplay", ASMHelper.toMethodDescriptor("I", ASMConstants.FOOD_STATS), false));
